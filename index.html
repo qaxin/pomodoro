@@ -86,7 +86,7 @@
         const times = {
             pomodoro: 25 * 60,
             shortBreak: 5 * 60,
-            longBreak: 15 * 60
+            longBreak: 35 * 60
         };
 
         let timeLeft = times.pomodoro;
@@ -94,6 +94,7 @@
         let mode = 'pomodoro';
         let rounds = 0;
         let interval;
+        let completedPomodoros = 0;
 
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
@@ -103,9 +104,12 @@
 
         function updateDisplay() {
             document.getElementById('timer').textContent = formatTime(timeLeft);
-            document.getElementById('round').textContent = `Round: ${Math.floor(rounds % 4) + 1}/4`;
+            document.getElementById('round').textContent = `Round: ${Math.floor(completedPomodoros % 4) + 1}/4`;
             document.getElementById('nextBtn').style.display = isRunning ? 'block' : 'none';
             document.getElementById('startBtn').textContent = isRunning ? 'PAUSE' : 'START';
+            
+            document.querySelectorAll('.buttons button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${mode}Btn`).classList.add('active');
         }
 
         function switchMode(newMode) {
@@ -113,25 +117,25 @@
             timeLeft = times[newMode];
             isRunning = false;
             clearInterval(interval);
-            
-            document.querySelectorAll('.buttons button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`${newMode}Btn`).classList.add('active');
-            
             updateDisplay();
         }
 
         function handleTimerComplete() {
             if (mode === 'pomodoro') {
-                rounds++;
-                if (rounds % 4 === 0) {
-                    switchMode('longBreak');
+                completedPomodoros++;
+                if (completedPomodoros % 4 === 0) {
+                    mode = 'longBreak';
+                    timeLeft = times.longBreak;
                 } else {
-                    switchMode('shortBreak');
+                    mode = 'shortBreak';
+                    timeLeft = times.shortBreak;
                 }
             } else {
-                switchMode('pomodoro');
+                mode = 'pomodoro';
+                timeLeft = times.pomodoro;
             }
             isRunning = false;
+            clearInterval(interval);
             updateDisplay();
         }
 
