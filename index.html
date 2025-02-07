@@ -3,6 +3,7 @@
 <head>
     <title>Pomodoro Timer</title>
     <style>
+        /* Previous CSS remains the same */
         body {
             margin: 0;
             min-height: 100vh;
@@ -82,6 +83,10 @@
         </div>
     </div>
 
+    <audio id="notificationSound">
+        <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+    </audio>
+
     <script>
         const times = {
             pomodoro: 25 * 60,
@@ -95,6 +100,24 @@
         let rounds = 0;
         let interval;
         let completedPomodoros = 0;
+        let notificationsEnabled = false;
+
+        // Request notification permission on start
+        if ("Notification" in window) {
+            Notification.requestPermission();
+        }
+
+        function showNotification(title, message) {
+            if (Notification.permission === "granted") {
+                const notification = new Notification(title, {
+                    body: message,
+                    icon: "https://example.com/icon.png" // Add your icon URL
+                });
+                
+                const sound = document.getElementById('notificationSound');
+                sound.play().catch(e => console.log('Sound play failed:', e));
+            }
+        }
 
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
@@ -121,19 +144,29 @@
         }
 
         function handleTimerComplete() {
+            let notificationTitle, notificationMessage;
+
             if (mode === 'pomodoro') {
                 completedPomodoros++;
                 if (completedPomodoros % 4 === 0) {
                     mode = 'longBreak';
                     timeLeft = times.longBreak;
+                    notificationTitle = "Long Break Time!";
+                    notificationMessage = "Take a 35-minute break.";
                 } else {
                     mode = 'shortBreak';
                     timeLeft = times.shortBreak;
+                    notificationTitle = "Break Time!";
+                    notificationMessage = "Take a 5-minute break.";
                 }
             } else {
                 mode = 'pomodoro';
                 timeLeft = times.pomodoro;
+                notificationTitle = "Break Over!";
+                notificationMessage = "Time to focus for 25 minutes.";
             }
+
+            showNotification(notificationTitle, notificationMessage);
             isRunning = false;
             clearInterval(interval);
             updateDisplay();
