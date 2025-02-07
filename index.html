@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pomodoro Timer</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #191919;
+            color: #D4D4D4;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 12px 24px;
+            color: #D4D4D4;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        button.active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .timer {
+            font-size: 6rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .round {
+            font-size: 1.25rem;
+        }
+
+        .next-button {
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="buttons">
+            <button onclick="switchMode('pomodoro')" id="pomodoroBtn" class="active">Pomodoro</button>
+            <button onclick="switchMode('shortBreak')" id="shortBreakBtn">Short Break</button>
+            <button onclick="switchMode('longBreak')" id="longBreakBtn">Long Break</button>
+        </div>
+
+        <div class="timer" id="timer">25:00</div>
+
+        <div class="controls">
+            <div class="round" id="round">Round: 1/4</div>
+            <button onclick="toggleTimer()" id="startBtn">START</button>
+            <button onclick="skipToNext()" id="nextBtn" class="next-button" style="display: none">⏭</button>
+        </div>
+    </div>
+
+    <script>
+        const times = {
+            pomodoro: 25 * 60,
+            shortBreak: 5 * 60,
+            longBreak: 15 * 60
+        };
+
+        let timeLeft = times.pomodoro;
+        let isRunning = false;
+        let mode = 'pomodoro';
+        let rounds = 0;
+        let interval;
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            document.getElementById('timer').textContent = formatTime(timeLeft);
+            document.getElementById('round').textContent = `Round: ${Math.floor(rounds % 4) + 1}/4`;
+            document.getElementById('nextBtn').style.display = isRunning ? 'block' : 'none';
+            document.getElementById('startBtn').textContent = isRunning ? 'PAUSE' : 'START';
+        }
+
+        function switchMode(newMode) {
+            mode = newMode;
+            timeLeft = times[newMode];
+            isRunning = false;
+            clearInterval(interval);
+            
+            document.querySelectorAll('.buttons button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${newMode}Btn`).classList.add('active');
+            
+            updateDisplay();
+        }
+
+        function handleTimerComplete() {
+            if (mode === 'pomodoro') {
+                rounds++;
+                if (rounds % 4 === 0) {
+                    switchMode('longBreak');
+                } else {
+                    switchMode('shortBreak');
+                }
+            } else {
+                switchMode('pomodoro');
+            }
+            isRunning = false;
+            updateDisplay();
+        }
+
+        function toggleTimer() {
+            isRunning = !isRunning;
+            if (isRunning) {
+                interval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        handleTimerComplete();
+                    }
+                    updateDisplay();
+                }, 1000);
+            } else {
+                clearInterval(interval);
+            }
+            updateDisplay();
+        }
+
+        function skipToNext() {
+            handleTimerComplete();
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
